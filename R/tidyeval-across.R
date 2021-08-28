@@ -8,7 +8,7 @@ dt_squash_across <- function(call, env, data, j = j) {
 
   tbl <- simulate_vars(data, drop_groups = TRUE)
   .cols <- call$.cols %||% expr(everything())
-  locs <- tidyselect::eval_select(.cols, tbl)
+  locs <- tidyselect::eval_select(.cols, tbl, allow_rename = FALSE)
   cols <- syms(names(tbl))[locs]
 
   funs <- across_funs(call$.fns, env, data, j = j)
@@ -27,7 +27,9 @@ dt_squash_across <- function(call, env, data, j = j) {
   }
 
   .names <- eval(call$.names, env)
-  names(out) <- across_names(names(locs), names(funs), .names, env)
+  if (!is.null(call$.fns)) {
+    names(out) <- across_names(names(tbl)[locs], names(funs), .names, env)
+  }
   out
 }
 
@@ -99,16 +101,15 @@ dt_squash_formula <- function(x, env, data, j = TRUE, replace = quote(!!.x)) {
 }
 
 across_names <- function(cols, funs, names = NULL, env = parent.frame()) {
-  n_times <- if (is_empty(funs)) 1 else length(funs)
-  if (n_times == 1) {
+  if (length(funs) == 1) {
     names <- names %||% "{.col}"
   } else {
     names <- names %||% "{.col}_{.fn}"
   }
 
   glue_env <- child_env(env,
-    .col = rep(cols, each = n_times),
-    .fn = rep(funs %||% seq_len(n_times), length(cols))
+    .col = rep(cols, each = length(funs)),
+    .fn = rep(funs %||% seq_along(funs), length(cols))
   )
   glue::glue(names, .envir = glue_env)
 }
