@@ -2,7 +2,7 @@
 #'
 #' This is a method for the dplyr [relocate()] generic. It is translated to
 #' [data.table::setcolorder()]. If new names are provided for the relocated 
-#' columns, the names are applied with a call to [data.table::setnames()]. 
+#' columns, the names are set with a call to [data.table::setnames()]. 
 #'
 #' @param .data A [lazy_dt()].
 #' @inheritParams dplyr::relocate
