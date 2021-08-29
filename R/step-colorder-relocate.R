@@ -51,7 +51,18 @@ relocate.dtplyr_step <- function(.data, ..., .before = NULL, .after = NULL) {
   rhs <- setdiff(seq2(where + 1, ncol(.data)), to_move)
   new_vars <- .data$vars[unique(c(lhs, to_move, rhs))]
   out <- step_colorder(.data, new_vars)
-  step_group(out, .data$groups)
+
+  new_names <- names(to_move)
+  old_names <- .data$vars[to_move]
+  name_changed <- new_names != "" & new_names != old_names
+  if (any(name_changed)) {
+    out <- step_setnames(
+      out, old_names[name_changed], new_names[name_changed], in_place = TRUE, 
+      rename_groups = TRUE
+    )
+  }
+
+  out
 }
 
 #' @export

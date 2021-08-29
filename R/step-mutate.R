@@ -63,14 +63,25 @@ mutate_nested_vars <- function(mutate_vars) {
 #' # are used in the same expression
 #' dt %>%
 #'   mutate(x1 = x + 1, x2 = x1 + 1)
-mutate.dtplyr_step <- function(.data, ...) {
+mutate.dtplyr_step <- function(.data, ...,
+                               .before = NULL, .after = NULL) {
   dots <- capture_dots(.data, ...)
   if (is_null(dots)) {
     return(.data)
   }
 
   nested <- nested_vars(.data, dots, .data$vars)
-  step_mutate(.data, dots, nested)
+  out <- step_mutate(.data, dots, nested)
+
+  .before <- enquo(.before)
+  .after <- enquo(.after)
+  if (!quo_is_null(.before) || !quo_is_null(.after)) {
+    # Only change the order of new columns
+    new <- setdiff(names(dots), .data$vars)
+    out <- relocate(out, !!new, .before = !!.before, .after = !!.after)
+  }
+
+  out
 }
 
 #' @export
