@@ -43,7 +43,7 @@ relocate.dtplyr_step <- function(.data, ..., .before = NULL, .after = NULL) {
   } else {
     where <- 1L
     if (!where %in% to_move) {
-      to_move <- union(to_move, where)
+      to_move <- c(to_move, where)
     }
   }
 

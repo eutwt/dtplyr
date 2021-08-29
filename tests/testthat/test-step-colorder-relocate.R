@@ -90,3 +90,19 @@ test_that("relocate() only not alter grouping", {
     c("x", "y")
   )
 })
+
+test_that("relocate() can rename", {
+  dt <- lazy_dt(data.frame(a = 1, x = 1, y = 1, z = 1), "DT")
+  expect_equal(
+    relocate(dt, newname = y) %>% show_query(),
+    expr(setnames(setcolorder(copy(DT), !!c("y", "a", "x", "z")), "y", "newname"))
+  )
+  expect_equal(
+    relocate(dt, newname = y, .before = x) %>% show_query(),
+    expr(setnames(setcolorder(copy(DT), !!c("a", "y", "x", "z")), "y", "newname"))
+  )
+  expect_equal(
+    relocate(dt, newname = y, .after = z) %>% show_query(),
+    expr(setnames(setcolorder(copy(DT), !!c("a", "x", "z", "y")), "y", "newname"))
+  )
+})
