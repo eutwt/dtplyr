@@ -20,7 +20,9 @@ should appear (the default is to add to the right hand side). See
 }
 \description{
 This is a method for the dplyr \code{\link[=mutate]{mutate()}} generic. It is translated to
-the \code{j} argument of \verb{[.data.table}, using \verb{:=} to modify "in place".
+the \code{j} argument of \verb{[.data.table}, using \verb{:=} to modify "in place". If
+\code{.before} or \code{.after} is provided, the new columns are relocated with a call
+to \code{\link[data.table:setcolorder]{data.table::setcolorder()}}.
 }
 \examples{
 library(dplyr, warn.conflicts = FALSE)

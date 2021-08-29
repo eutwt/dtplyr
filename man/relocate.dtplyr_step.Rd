@@ -21,7 +21,8 @@ left-hand side; specifying both is an error.}
 }
 \description{
 This is a method for the dplyr \code{\link[=relocate]{relocate()}} generic. It is translated to
-the \code{j} argument of \verb{[.data.table}.
+\code{\link[data.table:setcolorder]{data.table::setcolorder()}}. If new names are provided for the relocated
+columns, the names are applied with a call to \code{\link[data.table:setattr]{data.table::setnames()}}.
 }
 \examples{
 library(dplyr, warn.conflicts = FALSE)

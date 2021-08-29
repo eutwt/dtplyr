@@ -44,7 +44,9 @@ mutate_nested_vars <- function(mutate_vars) {
 #' Create and modify columns
 #'
 #' This is a method for the dplyr [mutate()] generic. It is translated to
-#' the `j` argument of `[.data.table`, using `:=` to modify "in place".
+#' the `j` argument of `[.data.table`, using `:=` to modify "in place". If 
+#' `.before` or `.after` is provided, the new columns are relocated with a call
+#' to [data.table::setcolorder()].
 #'
 #' @param .data A [lazy_dt()].
 #' @param ... <[data-masking][dplyr::dplyr_data_masking]> Name-value pairs.
