@@ -4,7 +4,7 @@
 \alias{mutate.dtplyr_step}
 \title{Create and modify columns}
 \usage{
-\method{mutate}{dtplyr_step}(.data, ...)
+\method{mutate}{dtplyr_step}(.data, ..., .before = NULL, .after = NULL)
 }
 \arguments{
 \item{.data}{A \code{\link[=lazy_dt]{lazy_dt()}}.}
@@ -12,6 +12,11 @@
 \item{...}{<\link[dplyr:dplyr_data_masking]{data-masking}> Name-value pairs.
 The name gives the name of the column in the output, and the value should
 evaluate to a vector.}
+
+\item{.before, .after}{\Sexpr[results=rd]{lifecycle::badge("experimental")}
+<\code{\link[=dplyr_tidy_select]{tidy-select}}> Optionally, control where new columns
+should appear (the default is to add to the right hand side). See
+\code{\link[=relocate]{relocate()}} for more details.}
 }
 \description{
 This is a method for the dplyr \code{\link[=mutate]{mutate()}} generic. It is translated to

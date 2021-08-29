@@ -50,6 +50,10 @@ mutate_nested_vars <- function(mutate_vars) {
 #' @param ... <[data-masking][dplyr::dplyr_data_masking]> Name-value pairs.
 #'   The name gives the name of the column in the output, and the value should
 #'   evaluate to a vector.
+#' @param .before,.after \Sexpr[results=rd]{lifecycle::badge("experimental")}
+#'   <[`tidy-select`][dplyr_tidy_select]> Optionally, control where new columns
+#'   should appear (the default is to add to the right hand side). See
+#'   [relocate()] for more details.
 #' @importFrom dplyr mutate
 #' @export
 #' @examples
