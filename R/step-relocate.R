@@ -3,7 +3,7 @@
 #' Use `relocate()` to change column positions, using the same syntax as
 #' `select()` to make it easy to move blocks of columns at once.
 #'
-#' @inheritParams arrange
+#' @param .data A [lazy_dt()].
 #' @param ... <[`tidy-select`][dplyr_tidy_select]> Columns to move.
 #' @param .before,.after <[`tidy-select`][dplyr_tidy_select]> Destination of
 #'   columns selected by `...`. Supplying neither will move columns to the
@@ -47,7 +47,7 @@
 #' df2 %>% relocate(where(is.numeric), .before = where(is.character))
 
 #' @export
-relocate.dtplyr_step <- function(.data, ..., .before = NULL, .after = NULL) {
+zzz.dtplyr_step <- function(.data, ..., .before = NULL, .after = NULL) {
   sim_data <- simulate_vars(.data)
   to_move <- tidyselect::eval_select(expr(c(...)), sim_data)
 
