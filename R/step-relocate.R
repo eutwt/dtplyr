@@ -75,23 +75,20 @@ relocate.dtplyr_step <- function(.data, ..., .before = NULL, .after = NULL) {
     }
   }
 
-  new_names <- names(to_move)
-  if (!is.null(new_names)) {
-    # todo: deal with renaming groups 
-    old_names <- .data$vars[to_move]
-    to_rename <- new_names != "" & new_names != old_names
-    if (any(to_rename)) {
-      print('hi')
-      out <- step_setnames(
-        .data, old_names[to_rename], new_names[to_rename], in_place = TRUE, 
-        rename_groups = TRUE
-      )
-    }
-  }
-
   lhs <- setdiff(seq2(1, where - 1), to_move)
   rhs <- setdiff(seq2(where + 1, ncol(sim_data)), to_move)
   pos <- vctrs::vec_unique(c(lhs, unname(to_move), rhs))
-  out <- step_colorder(out, pos)
+  out <- step_colorder(.data, pos)
+
+  new_names <- names(to_move)
+  old_names <- .data$vars[to_move]
+  renamed <- new_names != "" & new_names != old_names
+  if (any(renamed)) {
+    out <- step_setnames(
+      out, old_names[renamed], new_names[renamed], in_place = TRUE, 
+      rename_groups = TRUE
+    )
+  }
+
   out
 }
