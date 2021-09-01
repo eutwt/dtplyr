@@ -88,7 +88,6 @@ dt_squash <- function(x, env, data, j = TRUE) {
     dt_squash_if(x, env, data, j = j, reduce = "&")
   } else if (is_call(x, "across")) {
     dt_squash_across(x, env, data, j = j)
-
   } else if (is_call(x)) {
     dt_squash_call(x, env, data, j = j)
   } else {
