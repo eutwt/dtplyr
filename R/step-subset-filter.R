@@ -22,6 +22,7 @@
 filter.dtplyr_step <- function(.data, ..., .preserve = FALSE) {
   check_filter(...)
   dots <- capture_dots(.data, ..., .j = FALSE)
+  dots <- flatten_calls(dots, "data.table")
 
   if (filter_by_lgl_col(dots)) {
     # Suppress data.table warning when filtering with a logical variable

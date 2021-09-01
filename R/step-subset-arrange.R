@@ -16,6 +16,7 @@
 #' dt %>% arrange(across(mpg:disp))
 arrange.dtplyr_step <- function(.data, ..., .by_group = FALSE) {
   dots <- capture_dots(.data, ..., .j = FALSE)
+  dots <- flatten_calls(dots, "data.table")
   if (.by_group) {
     dots <- c(syms(.data$groups), dots)
   }

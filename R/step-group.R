@@ -71,6 +71,7 @@ add_grouping_param <- function(call, step, arrange = step$arrange) {
 #'  summarise(mpg = mean(mpg))
 group_by.dtplyr_step <- function(.data, ..., .add = FALSE, add = deprecated(), arrange = TRUE) {
   dots <- capture_dots(.data, ...)
+  dots <- flatten_calls(dots, "data.table")
   dots <- exprs_auto_name(dots)
 
   if (lifecycle::is_present(add)) {
