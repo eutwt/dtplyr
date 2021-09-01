@@ -31,8 +31,10 @@ capture_dots <- function(.data, ..., .j = TRUE) {
   dots <- enquos(..., .named = .j)
   dots <- lapply(dots, dt_squash, data = .data, j = .j)
 
+  is_spliceable <- function(x) is.list(x) || is_call(x, "data.table")
+
   # Remove names from any list elements
-  is_list <- vapply(dots, is.list, logical(1))
+  is_list <- vapply(dots, is_spliceable, logical(1))
   names(dots)[is_list] <- ""
 
   # Auto-splice list results from dt_squash()
@@ -86,6 +88,7 @@ dt_squash <- function(x, env, data, j = TRUE) {
     dt_squash_if(x, env, data, j = j, reduce = "&")
   } else if (is_call(x, "across")) {
     dt_squash_across(x, env, data, j = j)
+
   } else if (is_call(x)) {
     dt_squash_call(x, env, data, j = j)
   } else {

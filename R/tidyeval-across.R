@@ -30,7 +30,7 @@ dt_squash_across <- function(call, env, data, j = j) {
   if (!is.null(call$.fns)) {
     names(out) <- across_names(names(tbl)[locs], names(funs), .names, env)
   }
-  out
+  expr(data.table(!!!out))
 }
 
 
