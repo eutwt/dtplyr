@@ -14,6 +14,7 @@
 #' dt %>% transmute(name, sh = paste0(species, "/", homeworld))
 transmute.dtplyr_step <- function(.data, ...) {
   dots <- capture_dots(.data, ...)
+  dots <- flatten_calls(dots, "data.table")
   nested <- nested_vars(.data, dots, .data$vars)
 
   groups <- group_vars(.data)

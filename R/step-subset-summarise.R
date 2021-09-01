@@ -34,6 +34,7 @@
 #'   summarise(across(disp:wt, mean))
 summarise.dtplyr_step <- function(.data, ..., .groups = NULL) {
   dots <- capture_dots(.data, ...)
+  dots <- flatten_calls(dots, "data.table")
   check_summarise_vars(dots)
 
   if (length(dots) == 0) {

@@ -268,3 +268,38 @@ fun_name <- function(fun) {
 
   NULL
 }
+
+flatten_calls <- function(x, calls) {
+  is_call_to_flatten <- function(x) {
+    any(vapply(calls, function(call_nm) is_call(x, call_nm), logical(1)))
+  }
+  to_flatten <- vapply(x, is_call_to_flatten, logical(1))
+  if (!any(to_flatten)) {
+    return(x)
+  }
+
+  cols <- rep(1L, length(x))
+  cols[to_flatten] <- vapply(x[to_flatten], length, integer(1)) - 1L
+
+  out <- vector("list", sum(cols))
+  names <- vector("character", sum(cols))
+  j <- 1
+  for (i in seq_along(x)) {
+    if (cols[[i]] == 0) {
+      next
+    }
+
+    if (to_flatten[[i]]) {
+      xi_call_args <- call_args(x[[i]])
+      out[j:(j + cols[[i]] - 1)] <- xi_call_args
+      names[j:(j + cols[[i]] - 1)] <- names(xi_call_args)
+    } else {
+      out[[j]] <- x[[i]]
+      names[[j]] <- names(x)[[i]]
+    }
+    j <- j + cols[[i]]
+  }
+  names(out) <- names
+  out
+}
+

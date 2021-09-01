@@ -65,6 +65,7 @@ mutate_nested_vars <- function(mutate_vars) {
 #'   mutate(x1 = x + 1, x2 = x1 + 1)
 mutate.dtplyr_step <- function(.data, ...) {
   dots <- capture_dots(.data, ...)
+  dots <- flatten_calls(dots, "data.table")
   if (is_null(dots)) {
     return(.data)
   }
