@@ -146,6 +146,7 @@ dt_squash_call <- function(x, env, data, j = TRUE) {
     x[-1] <- lapply(x[-1], dt_squash, env, data, j = j)
     x
   } else if (is_call(x, c("lag", "lead"))) {
+    x[-1] <- lapply(x[-1], dt_squash, env, data, j = j)
     if (is_call(x, "lag")) {
       type <- "lag"
       call <- match.call(dplyr::lag, x)
@@ -171,7 +172,7 @@ dt_squash_call <- function(x, env, data, j = TRUE) {
     quote(.N)
   } else if (is_call(x, "n_distinct")) {
     x <- match.call(dplyr::n_distinct, x, expand.dots = FALSE)
-    dots <- x$...
+    dots <- lapply(x$..., dt_squash, env, data, j = j)
     if (length(dots) == 1) {
       vec <- dots[[1]]
     } else {
