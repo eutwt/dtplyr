@@ -75,7 +75,7 @@ test_that("expand handles group variables as arguments", {
   res <- dt %>% group_by(x) %>% expand(x, y)
   expect_equal(
     show_query(res),
-    expr(DT[, CJ(x = x, y = y, unique = TRUE), keyby = .(x)][, `:=`("x", NULL)])
+    expr(DT[, CJ(y = y, unique = TRUE), keyby = .(x)])
   )
   expect_equal(
     res$groups,
@@ -86,8 +86,7 @@ test_that("expand handles group variables as arguments", {
   res <- dt %>% group_by(x, y) %>% expand(x, y, z)
   expect_equal(
     show_query(res),
-    expr(DT[, CJ(x = x, y = y, z = z, unique = TRUE), keyby = .(x, y)
-            ][, !!expr(!!c("x", "y") := NULL)])
+    expr(DT[, CJ(z = z, unique = TRUE), keyby = .(x, y)])
   )
   expect_equal(
     res$groups,
