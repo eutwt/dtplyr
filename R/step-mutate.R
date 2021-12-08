@@ -1,12 +1,10 @@
-step_mutate <- function(parent, new_vars = list(), remove_vars = integer(), nested = FALSE) {
+step_mutate <- function(parent, new_vars = list(), nested = FALSE) {
   vars <- union(parent$vars, names(new_vars))
   vars <- setdiff(vars, names(new_vars)[vapply(new_vars, is_null, lgl(1))])
-  vars <- setdiff(vars, names(remove_vars))
 
   new_step(
     parent,
     vars = vars,
-    remove_vars = remove_vars,
     groups = parent$groups,
     arrange = parent$arrange,
     needs_copy = !parent$implicit_copy,
@@ -18,10 +16,10 @@ step_mutate <- function(parent, new_vars = list(), remove_vars = integer(), nest
 
 dt_call.dtplyr_step_mutate <- function(x, needs_copy = x$needs_copy) {
   # i is always empty because we never mutate a subset
-  if (!x$nested & is_empty(x$remove_vars)) {
-    j <- call2(":=", !!!x$new_vars)
+  if (!x$nested & !any(x$new_vars$is_temp)) {
+    j <- call2(":=", !!!x$new_vars$new_vars)
   } else {
-    mutate_list <- mutate_braces_expr(x$new_vars, x$remove_vars)
+    mutate_list <- mutate_braces_expr(x$new_vars)
     j <- call2(":=", call2("c", !!!mutate_list$new_vars), mutate_list$expr)
   }
 
@@ -30,9 +28,9 @@ dt_call.dtplyr_step_mutate <- function(x, needs_copy = x$needs_copy) {
   add_grouping_param(out, x, arrange = FALSE)
 }
 
-mutate_braces_expr <- function(mutate_vars, remove_vars = integer()) {
-  assign <- map2(syms(names(mutate_vars)), mutate_vars, function(x, y) call2("<-", x, y))
-  new_vars <- setdiff(unique(names(mutate_vars)), names(remove_vars))
+mutate_braces_expr <- function(mutate_vars) {
+  assign <- map2(syms(names(mutate_vars$new_vars)), mutate_vars$new_vars, function(x, y) call2("<-", x, y))
+  new_vars <- unique(names(mutate_vars$new_vars[!mutate_vars$is_temp]))
   output <- call2(".", !!!syms(new_vars))
 
   list(
@@ -78,14 +76,13 @@ mutate.dtplyr_step <- function(.data, ...,
     return(.data)
   }
 
-  remove_vars <- get_remove_vars(dots)
-  if (!is_empty(remove_vars)) dots <- dots[-remove_vars]
-  if (is_empty(setdiff(names(dots), names(remove_vars)))) {
+  new_vars <- mark_temp_vars(dots)
+  if (is_empty(new_vars$new_vars[!new_vars$is_temp])) {
     return(.data)
   }
 
-  nested <- nested_vars(.data, dots, .data$vars)
-  out <- step_mutate(.data, dots, remove_vars, nested)
+  nested <- nested_vars(.data, new_vars$new_vars, .data$vars)
+  out <- step_mutate(.data, new_vars, nested)
 
   .before <- enquo(.before)
   .after <- enquo(.after)
@@ -123,12 +120,12 @@ nested_vars <- function(.data, dots, all_vars) {
   FALSE
 }
 
-get_remove_vars <- function(dots){
+mark_temp_vars <- function(dots){
   # Detect vars created and then set to NULL in same mutate
-  n_used <- tapply(seq_along(dots), names(dots), length)
-  last_i <- tapply(seq_along(dots), names(dots), function(x) x[[length(x)]])
-  last_is_null <- vapply(dots[last_i], is.null, lgl(1))
-  last_i[last_is_null & n_used > 1]
+  is_temp_var <- tapply(dots, names(dots), function(x) {
+    length(x) > 1 && is.null(x[[length(x)]])
+  })
+  list(new_vars = dots, is_temp = is_temp_var[names(dots)])
 }
 
 # Helpers -----------------------------------------------------------------
