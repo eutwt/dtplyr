@@ -2,14 +2,19 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y")) {
   stopifnot(is_step(x))
   y <- dtplyr_auto_copy(x, y, copy = copy)
   stopifnot(is_step(y))
-  stopifnot(is.null(on) || is.character(on))
+  stopifnot(is.null(on) || is.character(on) || inherits(on, "dplyr_join_by"))
   style <- match.arg(style, c("inner", "full", "right", "left", "semi", "anti"))
 
   if (is_character(on, 0)) {
     return(cross_join(x, y))
   }
 
-  on <- dplyr::common_by(on, x, y)
+  if (is_null(on)) {
+    on <- dplyr:::join_by_common(x$vars, y$vars)
+  } else {
+    on <- dplyr:::as_join_by(on)
+  }
+  on$dt_on <- create_dt_on(on, style)
 
   vars_out_dt <- dt_join_vars(x$vars, y$vars, on$x, on$y, suffix = suffix, style = style)
   colorder <- dt_join_colorder(x$vars, y$vars, on$x, on$y, style)
@@ -21,7 +26,7 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y")) {
     implicit_copy = TRUE,
     parent2 = if (style == "left") x else y,
     vars = vars_out_dt,
-    on = if (style %in% c("left", "full")) on else list(x = on$y, y = on$x),
+    on = on,
     style = style,
     locals = utils::modifyList(x$locals, y$locals),
     class = "dtplyr_step_join"
@@ -69,9 +74,7 @@ dt_sources.dtplyr_step_join <- function(x) {
 dt_call.dtplyr_step_join <- function(x, needs_copy = x$needs_copy) {
   lhs <- dt_call(x$parent, needs_copy)
   rhs <- dt_call(x$parent2)
-  on2 <- simplify_names(stats::setNames(x$on$x, x$on$y))
-
-  on <- call2(".", !!!syms(on2))
+  on <- x$on$dt_on
 
   switch(x$style,
     full = call2("merge", lhs, rhs, all = TRUE, by.x = x$on$x, by.y = x$on$y, allow.cartesian = TRUE),
@@ -149,6 +152,25 @@ semi_join.dtplyr_step <- function(x, y, ..., by = NULL, copy = FALSE) {
 }
 
 # helpers -----------------------------------------------------------------
+
+create_dt_on <- function(on, style){
+  if (style == "left") {
+    on[c('x', 'y')] <- on[c('y', 'x')]
+  }
+
+  create_expr <- function(condition, x, y) {
+    if (condition != "==") {
+      call2(condition, sym(x), sym(y))
+    } else if (x == y) {
+      sym(x)
+    } else {
+      list2("{x}" := sym(y))
+    }
+  }
+
+  args <- pmap(on[c('condition', 'x', 'y')], create_expr)
+  call2(".", !!!unlist(args, recursive = FALSE))
+}
 
 dtplyr_auto_copy <- function(x, y, copy = copy) {
   if (is_step(y)) {
