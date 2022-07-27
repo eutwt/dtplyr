@@ -1,4 +1,4 @@
-step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y")) {
+step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
   stopifnot(is_step(x))
   y <- dtplyr_auto_copy(x, y, copy = copy)
   stopifnot(is_step(y))
@@ -116,39 +116,73 @@ dt_call.dtplyr_step_join <- function(x, needs_copy = x$needs_copy) {
 #'
 #' band_dt %>% semi_join(instrument_dt)
 #' band_dt %>% anti_join(instrument_dt)
-left_join.dtplyr_step <- function(x, y, ..., by = NULL, copy = FALSE, suffix = c(".x", ".y")) {
-  step_join(x, y, by, style = "left", copy = copy, suffix = suffix)
+left_join.dtplyr_step <- function(x, 
+                                  y, 
+                                  by = NULL, 
+                                  copy = FALSE, 
+                                  suffix = c(".x", ".y"), 
+                                  ...,
+                                  keep = NULL) {
+  step_join(x, y, by, style = "left", copy = copy, suffix = suffix, keep = keep)
 }
 
 #' @importFrom dplyr right_join
 #' @export
-right_join.dtplyr_step <- function(x, y, ..., by = NULL, copy = FALSE, suffix = c(".x", ".y")) {
-  step_join(x, y, by, style = "right", copy = copy, suffix = suffix)
+right_join.dtplyr_step <- function(x, 
+                                   y, 
+                                   by = NULL, 
+                                   copy = FALSE, 
+                                   suffix = c(".x", ".y"), 
+                                   ...,
+                                   keep = NULL) {
+  step_join(x, y, by, style = "right", copy = copy, suffix = suffix, keep = keep)
 }
 
 
 #' @importFrom dplyr inner_join
 #' @export
-inner_join.dtplyr_step <- function(x, y, ..., by = NULL, copy = FALSE, suffix = c(".x", ".y")) {
-  step_join(x, y, on = by, style = "inner", copy = copy, suffix = suffix)
+inner_join.dtplyr_step <- function(x, 
+                                   y, 
+                                   by = NULL, 
+                                   copy = FALSE, 
+                                   suffix = c(".x", ".y"), 
+                                   ...,
+                                   keep = NULL) {
+  step_join(x, y, on = by, style = "inner", copy = copy, suffix = suffix, keep = keep)
 }
 
 #' @importFrom dplyr full_join
 #' @export
-full_join.dtplyr_step <- function(x, y, ..., by = NULL, copy = FALSE, suffix = c(".x", ".y")) {
-  step_join(x, y, on = by, style = "full", copy = copy, suffix = suffix)
+full_join.dtplyr_step <- function(x, 
+                                  y, 
+                                  by = NULL, 
+                                  copy = FALSE, 
+                                  suffix = c(".x", ".y"), 
+                                  ...,
+                                  keep = NULL) {
+  step_join(x, y, on = by, style = "full", copy = copy, suffix = suffix, keep = keep)
 }
 
 #' @importFrom dplyr anti_join
 #' @export
-anti_join.dtplyr_step <- function(x, y, ..., by = NULL, copy = FALSE) {
-  step_join(x, y, on = by, style = "anti", copy = copy)
+anti_join.dtplyr_step <- function(x, 
+                                  y, 
+                                  by = NULL, 
+                                  copy = FALSE, 
+                                  ...,
+                                  keep = NULL) {
+  step_join(x, y, on = by, style = "anti", copy = copy, keep = keep)
 }
 
 #' @importFrom dplyr semi_join
 #' @export
-semi_join.dtplyr_step <- function(x, y, ..., by = NULL, copy = FALSE) {
-  step_join(x, y, on = by, style = "semi", copy = copy)
+semi_join.dtplyr_step <- function(x, 
+                                  y, 
+                                  by = NULL, 
+                                  copy = FALSE, 
+                                  ...,
+                                  keep = NULL) {
+  step_join(x, y, on = by, style = "semi", copy = copy, keep = keep)
 }
 
 # helpers -----------------------------------------------------------------
