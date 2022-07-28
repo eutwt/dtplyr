@@ -16,6 +16,7 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
   }
 
   on$dt_on <- create_dt_on(on, style)
+  # todo: error when join is non-equi and style == "full" (not possible in dt)
 
   vars_out_dt <- dt_join_vars(x$vars, y$vars, on$x, on$y, suffix = suffix, style = style)
   colorder <- dt_join_colorder(x$vars, y$vars, on$x, on$y, style)
