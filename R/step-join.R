@@ -40,7 +40,7 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
 
   x_sim <- simulate_vars(x)
   y_sim <- simulate_vars(y)
-  vars <- dplyr_join_vars(x_sim, y_sim, on$x, on$y, suffix = suffix)
+  vars <- dplyr_join_vars(x_sim, y_sim, on$x, on$y, suffix = suffix, keep = keep)
 
   if (any(duplicated(vars_out_dt))) {
     step_setnames(out, colorder, vars, in_place = FALSE)
@@ -221,8 +221,8 @@ add_suffixes <- function (x, y, suffix) {
   x
 }
 
-dplyr_join_vars <- function(x, y, on_x, on_y, suffix) {
-  colnames(left_join(x, y, by = stats::setNames(on_y, on_x), suffix = suffix))
+dplyr_join_vars <- function(x, y, on_x, on_y, suffix, keep) {
+  colnames(left_join(x, y, by = stats::setNames(on_y, on_x), suffix = suffix, keep = keep))
 }
 
 dt_join_vars <- function(x, y, on_x, on_y, suffix, style) {
