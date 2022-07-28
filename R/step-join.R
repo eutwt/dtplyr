@@ -20,6 +20,8 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
   vars_out_dt <- dt_join_vars(x$vars, y$vars, on$x, on$y, suffix = suffix, style = style)
   colorder <- dt_join_colorder(x$vars, y$vars, on$x, on$y, style)
 
+  join_needs_j <- is_true(keep) || any(on$condition != "==")
+
   # TODO suppress warning in merge
   # "column names ... are duplicated in the result
   out <- new_step(
@@ -188,7 +190,7 @@ semi_join.dtplyr_step <- function(x,
 
 # helpers -----------------------------------------------------------------
 
-create_dt_on <- function(on, style){
+create_dt_on <- function(on, style) {
   if (style == "left") {
     on[c('x', 'y')] <- on[c('y', 'x')]
   }
