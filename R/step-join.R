@@ -5,15 +5,16 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
   stopifnot(is.null(on) || is.character(on) || inherits(on, "dplyr_join_by"))
   style <- match.arg(style, c("inner", "full", "right", "left", "semi", "anti"))
 
-  if (is_character(on, 0)) {
-    return(cross_join(x, y))
-  }
-
   if (is_null(on)) {
     on <- dplyr:::join_by_common(x$vars, y$vars)
   } else {
     on <- dplyr:::as_join_by(on)
   }
+
+  if (on$cross) {
+    return(cross_join(x, y))
+  }
+
   on$dt_on <- create_dt_on(on, style)
 
   vars_out_dt <- dt_join_vars(x$vars, y$vars, on$x, on$y, suffix = suffix, style = style)
