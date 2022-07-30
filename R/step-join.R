@@ -1,4 +1,5 @@
 step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
+  # todo: error when join is non-equi and style == "full" (not possible in dt)
   stopifnot(is_step(x))
   y <- dtplyr_auto_copy(x, y, copy = copy)
   stopifnot(is_step(y))
@@ -15,13 +16,40 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
     return(cross_join(x, y))
   }
 
+  var_groups <- dplyr:::join_cols(
+    x$vars, 
+    y$vars, 
+    by = on,
+    suffix = suffix,
+    keep = keep
+  )
+  vars_out <- c(names(var_groups$x$out), names(var_groups$y$out))
+
+  needs_j <- join_needs_j(on, keep)
+  if (needs_j) {
+    prefix <- list(x = "x.", y = "i.")
+    if (style == "left") {
+      prefix[c("x", "y")] <- prefix[c("y", "x")]
+    }
+    dt_vars <- c(
+      paste0(prefix$x, x$vars[var_groups$x$out]),
+      paste0(prefix$y, y$vars[var_groups$y$out])
+    )
+    j_args <- setNames(syms(dt_vars), vars_out)
+    j <- call2(".", !!!j_args)
+    vars_out_dt <- vars_out
+  } else {
+    vars_out_dt <- dt_join_vars(
+      x$vars, 
+      y$vars, 
+      on$x, 
+      on$y, 
+      suffix = suffix, 
+      style = style
+    )
+  }
+
   on$dt_on <- create_dt_on(on, style)
-  # todo: error when join is non-equi and style == "full" (not possible in dt)
-
-  vars_out_dt <- dt_join_vars(x$vars, y$vars, on$x, on$y, suffix = suffix, style = style)
-  colorder <- dt_join_colorder(x$vars, y$vars, on$x, on$y, style)
-
-  join_needs_j <- is_true(keep) || any(on$condition != "==")
 
   # TODO suppress warning in merge
   # "column names ... are duplicated in the result
@@ -31,25 +59,23 @@ step_join <- function(x, y, on, style, copy, suffix = c(".x", ".y"), keep) {
     parent2 = if (style == "left") x else y,
     vars = vars_out_dt,
     on = on,
+    j = if (needs_j) j,
     style = style,
     locals = utils::modifyList(x$locals, y$locals),
     class = "dtplyr_step_join"
   )
 
-  if (style %in% c("anti", "semi")) {
+  if (needs_j || style %in% c("anti", "semi")) {
     return(out)
   }
 
+  colorder <- dt_join_colorder(x$vars, y$vars, on$x, on$y, style)
   out <- step_colorder(out, colorder)
 
-  x_sim <- simulate_vars(x)
-  y_sim <- simulate_vars(y)
-  vars <- dplyr_join_vars(x_sim, y_sim, on$x, on$y, suffix = suffix, keep = keep)
-
-  if (any(duplicated(vars_out_dt))) {
-    step_setnames(out, colorder, vars, in_place = FALSE)
+  if (anyDuplicated(vars_out_dt)) {
+    step_setnames(out, colorder, vars_out, in_place = FALSE)
   } else {
-    step_setnames(out, vars_out_dt[colorder], vars, in_place = FALSE)
+    step_setnames(out, vars_out_dt[colorder], vars_out, in_place = FALSE)
   }
 }
 
@@ -80,7 +106,7 @@ dt_call.dtplyr_step_join <- function(x, needs_copy = x$needs_copy) {
   rhs <- dt_call(x$parent2)
   on <- x$on$dt_on
 
-  switch(x$style,
+  out <- switch(x$style,
     full = call2("merge", lhs, rhs, all = TRUE, by.x = x$on$x, by.y = x$on$y, allow.cartesian = TRUE),
     left = call2("[", lhs, rhs, on = on, allow.cartesian = TRUE),
     inner = call2("[", lhs, rhs, on = on, nomatch = NULL, allow.cartesian = TRUE),
@@ -88,6 +114,7 @@ dt_call.dtplyr_step_join <- function(x, needs_copy = x$needs_copy) {
     anti = call2("[", lhs, call2("!", rhs), on = on),
     semi = call2("[", lhs, call2("unique", call2("[", lhs, rhs, which = TRUE, nomatch = NULL, on = on)))
   )
+  call_modify(out, j = x$j %||% zap())
 }
 
 # dplyr verbs -------------------------------------------------------------
@@ -191,6 +218,10 @@ semi_join.dtplyr_step <- function(x,
 
 # helpers -----------------------------------------------------------------
 
+join_needs_j <- function(on, keep) {
+  is_true(keep) || (is_null(keep) && any(on$condition != "=="))
+}
+
 create_dt_on <- function(on, style) {
   if (style == "left") {
     on[c('x', 'y')] <- on[c('y', 'x')]
@@ -223,10 +254,6 @@ dtplyr_auto_copy <- function(x, y, copy = copy) {
 add_suffixes <- function (x, y, suffix) {
   x[x %in% y] <- paste0(x[x %in% y], suffix)
   x
-}
-
-dplyr_join_vars <- function(x, y, on_x, on_y, suffix, keep) {
-  colnames(left_join(x, y, by = stats::setNames(on_y, on_x), suffix = suffix, keep = keep))
 }
 
 dt_join_vars <- function(x, y, on_x, on_y, suffix, style) {
