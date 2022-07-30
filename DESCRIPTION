@@ -20,7 +20,7 @@ Depends:
 Imports:
     crayon,
     data.table (>= 1.13.0),
-    dplyr (>= 1.0.3),
+    dplyr (>= 1.0.99.9000),
     glue,
     lifecycle,
     rlang (>= 1.0.4),
@@ -36,7 +36,8 @@ Suggests:
     tidyr (>= 1.1.0),
     waldo (>= 0.3.1)
 Remotes:
-    r-lib/tidyselect
+    r-lib/tidyselect,
+    tidyverse/dplyr
 VignetteBuilder: 
     knitr
 Config/Needs/website: tidyverse/tidytemplate
